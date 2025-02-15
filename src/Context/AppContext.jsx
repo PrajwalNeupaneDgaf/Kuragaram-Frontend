@@ -40,7 +40,8 @@ const AppContext = ({ children }) => {
   useEffect(() => {
     if (!User?._id) return; // ✅ Prevents creating socket if user is undefined
 
-    const newSocket = io("http://localhost:8000", {
+    // const newSocket = io("http://localhost:8000", {
+    const newSocket = io("https://kuragaram-backend.onrender.com", {
       query: { id: User._id ,roomid:ActiveRoom._id},
     });
 
