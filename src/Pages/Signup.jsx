@@ -1,17 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "../Layouts/Layout";
 import { useNavigate } from "react-router-dom";
+import { useData } from "../Context/AppContext";
+import { toast } from "sonner";
+import apiCaller from "../Axios";
+import LoadingScreen from "../Components/Loading";
 
 const Signup = () => {
   const [Name, setName] = useState('')
   const [UserName, setUserName] = useState('')
   const [Password , setPassword] = useState('')
+  const [Loading, setLoading] = useState(false)
+  const [LoadingPage, setLoadingPage] = useState(true)
 
   const navigate = useNavigate()
+
+   const {IsAuthorized ,setUser , setIsAuthorized} = useData()
+
+   useEffect(()=>{
+      if(IsAuthorized){
+        navigate('/')
+      }
+      setLoadingPage(false)
+    },[IsAuthorized])
+
+    if(LoadingPage) return <LoadingScreen/>
+
+    const HandleSubmit = (e)=>{
+      if(Loading) {return}
+      e.preventDefault()
+      setLoading(true)
+      if(!UserName|| !Name || !Password){
+        toast('Fill The Form Properly , Incomplete Credential')
+        return
+      }
+      if(Password.length<8){
+        toast('Password minimum Length Should be 8 digit')
+        return
+      }
+
+      apiCaller.post('/user/register',{Name,UserName,Password})
+      .then(res=>{
+        const data = res.data
+        setUser(data.User)
+        setIsAuthorized(true)
+        localStorage.setItem('Token',data?.Token)
+         toast('Registered Succesfully')
+      }).catch(err=>{
+        console.log(err)
+        toast(err.response?.data.message || 'Failed')
+      }).finally(()=>{
+        setLoading(false)
+      })
+  
+    }
   return (
     <Layout show={true}>
       <div className="h-[100vh] w-full flex justify-center items-center px-2">
-       <form className="w-full flex justify-center">
+       <form onSubmit={HandleSubmit} className="w-full flex justify-center">
        <div className="flex flex-col w-full md:w-[33rem] gap-2 p-6 py-12 border border-gray-100 border-solid md:rounded-2xl rounded-xl text-gray-300 bg-[#ffffff17]">
             <label 
             className="text-[1.2rem] font-sans font-[400]"
@@ -53,11 +99,13 @@ const Signup = () => {
             className="text-[1.2rem] text-[white] font-sans font-[350] cursor-pointer underline">
               Have Account?
             </strong>
-            <button 
+            <button
             type="submit"
-            className="bg-black py-2 rounded-xl font-semibold text-lg cursor-pointer"
+            className={` py-2 ${Loading?'bg-[#0000008a]':'bg-black'} rounded-xl font-semibold text-lg cursor-pointer`}
             >
-              Signup
+              {
+                Loading?`Signing up...`:"Signup"
+              }
             </button>
         </div>
        </form>

@@ -3,49 +3,14 @@ import { useData } from "../Context/AppContext";
 import { ClipboardCopyIcon, User2Icon, X } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import { useParams } from "react-router-dom";
+import apiCaller from "../Axios";
 
 const Requests = () => {
-  const { setIsRequestOpen } = useData();
+  const { setIsRequestOpen,CreatorRoom ,Requests,setRequests} = useData();
 
   const { id } = useParams();
 
-  const Requests = [
-    {
-      Name: "user1",
-      UserName: "user3",
-      Request: "Join",
-    },
-    {
-      Name: "user2",
-      UserName: "user3435",
-      Request: "Share",
-    },
-    {
-      Name: "user2",
-      UserName: "user3435",
-      Request: "Share",
-    },
-    {
-      Name: "user2",
-      UserName: "user3435",
-      Request: "Share",
-    },
-    {
-      Name: "user2",
-      UserName: "user3435",
-      Request: "Share",
-    },
-    {
-      Name: "user2",
-      UserName: "user3435",
-      Request: "Share",
-    },
-    {
-      Name: "user3",
-      UserName: "user23",
-      Request: "Join",
-    },
-  ];
+
 
   const CopyId = async () => {
     try {
@@ -56,6 +21,20 @@ const Requests = () => {
       toast("error in Copying");
     }
   };
+
+  const manageRequest = (status,userId)=>{
+    apiCaller.post(`/room/handleRequest/${id}/${userId}`,{status:status})
+    .then(res=>{
+      const data = res.data
+      toast.success(status?"Accepted":"Rejected")
+
+      const newRequests = Requests.filter(itm=>itm._id!==userId)
+      setRequests(newRequests)
+
+    }).catch(()=>{
+      toast.error('failed')
+    })
+  }
   return (
     <div className="related w-full">
       <div className="absolute top-0 left-0 right-0 h-[4.5rem] bg-stone-900 z-20">
@@ -91,17 +70,21 @@ const Requests = () => {
             >
               <div className="flex flex-row gap-1  items-center">
                 <button className="flex justify-center items-center bg-[#50dfc052] text-black h-6 w-6 rounded-full">
-                  {itm.Name.toUpperCase()[0]}
+                  {itm.Name.trimStart().toUpperCase()[0]}
                 </button>
                 <strong className="text-lg font-[350] text-gray-200">
-                  {itm.Name} ({itm?.Request})
+                  {itm.Name}
                 </strong>
               </div>
               <div className="flex gap-3">
-                <button className="py-2 px-7 rounded-xl font-[460] cursor-pointer bg-[#5e585834]">
+                <button onClick={()=>{
+                  manageRequest(false ,itm._id)
+                }} className="py-2 px-7 rounded-xl font-[460] cursor-pointer bg-[#5e585834]">
                   Reject
                 </button>
-                <button className="py-2 px-7 rounded-xl font-[460] cursor-pointer bg-[#0000007a]">
+                <button onClick={()=>{
+                  manageRequest(true,itm._id)
+                }} className="py-2 px-7 rounded-xl font-[460] cursor-pointer bg-[#0000007a]">
                   Accept
                 </button>
               </div>
